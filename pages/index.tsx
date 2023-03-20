@@ -1,10 +1,9 @@
-import { gql } from "@apollo/client/core";
-import type { NextPage } from "next";
+import gql from "graphql-tag";
 import Head from "next/head";
-import Image from "next/image";
+import Link from "next/link";
 import client from "../apollo-client";
 
-const Home: NextPage = () => {
+export default function Home({ podcasts }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
       <Head>
@@ -19,24 +18,30 @@ const Home: NextPage = () => {
             Podcastera
           </a>
         </h1>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
+        {podcasts.map((podcast) => (
+          <Link
+            legacyBehavior
+            key={podcast.id}
+            className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full"
+            href={`podcasts/${podcast.slug}`}
           >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-        </div>
+            <a
+              href="https://nextjs.org/learn"
+              className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
+            >
+              <h3 className="text-2xl font-bold">{podcast.title} &rarr;</h3>
+              {podcast.categories.map((category) => (
+                <p key={category.id} className="mt-4 text-xl">
+                  {category.title}
+                </p>
+              ))}
+            </a>
+          </Link>
+        ))}
       </main>
     </div>
   );
-};
-
-export default Home;
+}
 
 export const getStaticProps = async (_req: any, res: any) => {
   const { data } = await client.query({
@@ -51,17 +56,18 @@ export const getStaticProps = async (_req: any, res: any) => {
             html
           }
           categories {
+            id
             title
           }
         }
       }
     `,
   });
-  console.log(data);
 
+  const { podcasts } = data;
   return {
     props: {
-      podcasts: data.podcasts,
+      podcasts,
     },
   };
 };
